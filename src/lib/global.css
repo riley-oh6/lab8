@@ -98,6 +98,7 @@ fill: var(--color);
     align-items: center;
   }
 
+  
   .legend > div:nth-child(1) {
     background-color: var(--color-departures); /* Specify the color for the first box */
     justify-content: flex-start;
