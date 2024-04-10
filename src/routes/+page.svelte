@@ -16,15 +16,22 @@
 
 <div id="map">
     <svg>
-        {#each stations as station}
+        {#each filteredStations as station}
 
             {#key mapViewChanged}
-                <circle { ...getCoords(station) } r={radiusScale(station.totalTraffic)} fill="steelblue" />
+                <circle { ...getCoords(station) } r={radiusScale(station.totalTraffic)} fill="steelblue" style="--departure-ratio: { stationFlow(station.departures / station.totalTraffic) }" />
             {/key}
             
         {/each}
     </svg>
 </div>
+
+<div class="legend">
+	<div style="--departure-ratio: 1">More departures</div>
+	<div style="--departure-ratio: 0.5">Balanced</div>
+	<div style="--departure-ratio: 0">More arrivals</div>
+</div>
+
 
 <script>
     import mapboxgl from "mapbox-gl";
@@ -52,10 +59,12 @@
 
     let stations = [];
     let trips = [];
-    let departures;
-    let arrivals;
     let map;
+    let stationFlow = d3.scaleQuantize()
+        .domain([0, 1])
+        .range([0, 0.5, 1]);
     onMount(async () => {
+    
     map = new mapboxgl.Map({
         style: "mapbox://styles/mapbox/streets-v12",
         container: "map",
@@ -103,20 +112,11 @@
     }
     return trips;
     });
-    departures = d3.rollup(trips, v => v.length, d => d.start_station_id);
-    arrivals = d3.rollup(trips, v => v.length, d => d.end_station_id);
-    stations = stations.map(station => {
-        station = {...station};
-        let id = station.Number;
-        station.arrivals = arrivals.get(id) ?? 0;
-        station.departures = departures;
-        station.totalTraffic = station.arrivals + station.departures.size;
-        return station;
-    });
+
 });
 
 $: radiusScale = d3.scaleSqrt()
-	.domain([0, d3.max(stations, d => d.totalTraffic)])
+	.domain([0, d3.max(filteredStations, d => d.totalTraffic)])
 	.range([0, 25]);
 
 $: filteredTrips = timeFilter === -1? trips : trips.filter(trip => {
@@ -125,5 +125,18 @@ $: filteredTrips = timeFilter === -1? trips : trips.filter(trip => {
 	return Math.abs(startedMinutes - timeFilter) <= 60
 	       || Math.abs(endedMinutes - timeFilter) <= 60;
 });
+
+$: filteredArrivals = d3.rollup(filteredTrips, v => v.length, d => d.start_station_id);
+$: filteredDepartures = d3.rollup(filteredTrips, v => v.length, d => d.end_station_id);
+$: filteredStations = stations.map(station => {
+    station = {...station}; // Clone the station object
+    let id = station.Number;
+    station.arrivals = filteredArrivals.get(id) ?? 0;
+    station.departures = filteredDepartures.get(id) ?? 0;
+    station.totalTraffic = station.arrivals + station.departures;
+    return station;
+});
+
+
 
 </script>

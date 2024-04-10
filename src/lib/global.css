@@ -35,6 +35,7 @@ circle {
     fill-opacity: 60%;
     stroke: white;
     pointer-events: auto;
+    
 }
 
 header {
@@ -61,4 +62,53 @@ header {
 
   #time-filter {
     width: 500px; /* Adjust the value as needed */
+  }
+  
+
+#map circle {
+    --color-departures: steelblue;
+    --color-arrivals: darkorange;
+    --color: color-mix(
+	in oklch,
+	var(--color-departures) calc(100% * var(--departure-ratio)),
+	var(--color-arrivals)
+);
+fill: var(--color);
+}
+
+.legend {
+    display: flex;
+    margin-block: 10px;
+  }
+  
+  .legend > div {
+    --color-departures: steelblue;
+    --color-arrivals: darkorange;
+    --color: color-mix(
+      in oklch,
+      var(--color-departures) calc(100% * var(--departure-ratio)),
+      var(--color-arrivals)
+    );
+    fill: var(--color);
+    flex: 1;
+    border: 1px solid #ccc; /* Add border for each box */
+    padding: 0.5em; /* Add padding for spacing inside each box */
+    color: white;
+    display: flex;
+    align-items: center;
+  }
+
+  .legend > div:nth-child(1) {
+    background-color: var(--color-departures); /* Specify the color for the first box */
+    justify-content: flex-start;
+  }
+  
+  .legend > div:nth-child(2) {
+    background-color: var(--color); /* Specify the color for the second box */
+    justify-content: center;
+  }
+  
+  .legend > div:nth-child(3) {
+    background-color: var(--color-arrivals); /* Specify the color for the third box */
+    justify-content: flex-end;
   }
